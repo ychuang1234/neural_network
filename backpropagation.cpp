@@ -6,10 +6,10 @@
 ************************************************/
 
 #include <stdio.h>
-#include <afx.h>
 #include <math.h>
 #include <stdlib.h>
-
+#include <string>
+#include <climits>
 #define InputN 64		// number of neurons in the input layer
 #define HN 25			// number of neurons in the hidden layer
 #define OutN 64			// number of neurons in the output layer
@@ -20,7 +20,7 @@ public:
     T sigmoid(T x){
 	   return(1.0 / (1.0 + exp(-x)));
     };
-}
+};
 class dataset_loader{
 public:
 	typedef struct{
@@ -29,14 +29,16 @@ public:
     }data;
     data dataset[datanum];
     dataset_loader(){
+    	int i,m;
     	for(m=0; m<datanum; m++){
 		   for(i=0; i<InputN; i++)
-			    data[m].input[i] = (double)rand()/32767.0;
+			    dataset[m].input[i] = (double)rand()/32767.0;
 		   for(i=0;i<OutN;i++)
-			    data[m].teach[i] = (double)rand()/32767.0;
+			    dataset[m].teach[i] = (double)rand()/32767.0;
 	    }
+	    //printf("Finish dataset_loader!!!\n");
     };
-}
+};
 
 template <typename T>
 class weights: public activation_function <T>{
@@ -59,9 +61,11 @@ public:
 	
 	T hn_delta[HN];		// delta of hidden layer
 	T y_delta[OutN];		// delta of output layer
-
-
+    T errtemp,error,sumtemp;
+    T max, min;
+	double alpha = 0.1, beta = 0.1;
 	void initialization(){ 
+		int i,j;
 	    for(i=0; i<InputN; i++){
 		    for(j=0; j<HN; j++){
 			    w[i][j] = ((T)rand()/32767.0)*2-1;
@@ -74,46 +78,52 @@ public:
 			   deltav[i][j] = 0;
 		    }
 	    }
+	    //printf("Finish initialization!!!\n");
     };
-
-    void feedforward(){
-    	int i,m;
-    	for(m=0; m<datanum; m++){
-			max = 0.0;
-			min = 0.0;
-			for(i=0; i<InputN; i++){
-				x_out[i] = dataset_ptr->dataset[m].input[i];
-				if(max < x_out[i])
-					max = x_out[i];
-				if(min > x_out[i])
-					min = x_out[i];
-			}
-		    for(i=0; i<InputN; i++){
-			    x_out[i] = (x_out[i] - min) / (max - min);
-		    }
-    		for(i=0; i<OutN ; i++){
-			    y[i] = dataset_ptr->dataset[m].teach[i];
-		    }
-     		for(i=0; i<HN; i++){
-			    sumtemp = 0.0;
-		    	for(j=0; j<InputN; j++)
-		    		sumtemp += w[j][i] * x_out[j];
-		    	hn_out[i] = sigmoid<T>(sumtemp);
-		    }
-    		for(i=0; i<OutN; i++){
-		    	sumtemp = 0.0;
-		    	for(j=0; j<HN; j++)
-		    		sumtemp += v[j][i] * hn_out[j];
-		        y_out[i] = sigmoid<T>(sumtemp);
-		    }
+    void run(){
+        int m;
+        error = 0;
+        for(m=0;m<datanum;m++){
+		    feedforward(m);
+		    backpropagation();
+        }
+    };
+    void feedforward(int m){
+    	int i,j;
+  		max = 0.0;
+		min = 0.0;
+		for(i=0; i<InputN; i++){
+			x_out[i] = dataset_ptr->dataset[m].input[i];
+			if(max < x_out[i])
+				max = x_out[i];
+			if(min > x_out[i])
+				min = x_out[i];
+		}
+		for(i=0; i<InputN; i++){
+		    x_out[i] = (x_out[i] - min) / (max - min);
+		}
+    	for(i=0; i<OutN ; i++){
+		    y[i] = dataset_ptr->dataset[m].teach[i];
+		}
+		for(i=0;i<HN;i++){
+			sumtemp = 0;
+	    	for(j=0; j<InputN; j++)
+	    		sumtemp += w[j][i] * x_out[j];
+	    	hn_out[i] = activation_function<T>::sigmoid(sumtemp);
 	    }
+   		for(i=0; i<OutN; i++){
+		    sumtemp = 0;
+		    for(j=0; j<HN; j++)
+		    	sumtemp += v[j][i] * hn_out[j];
+		    y_out[i] = activation_function<T>::sigmoid(sumtemp);
+		}
 	};
 
 	void backpropagation(){
-		int i;
+		int i,j;
 		for(i=0; i<OutN; i++){
 			errtemp = y[i] - y_out[i];
-			y_delta[i] = -errtemp * sigmoid(y_out[i]) * (1.0 - sigmoid(y_out[i]));
+			y_delta[i] = -errtemp * activation_function<T>::sigmoid(y_out[i]) * (1.0 - activation_function<T>::sigmoid(y_out[i]));
 			error += errtemp * errtemp;
 		}
 
@@ -138,20 +148,15 @@ public:
 				w[j][i] -= deltaw[j][i];
 			}
 		}
+		error = error / 2;
 	};
-
-}
+};
 int main(){
-	CString result = "";
 	char buffer[200];
-	double error;
 	double errlimit = 0.001;
-	double alpha = 0.1, beta = 0.1;
+
 	int loop = 0;
-	int times = 50;
-	double max, min;
-	double sumtemp;
-	double errtemp;
+	int times = 5000;
 
 	// Generate data samples
 	dataset_loader training_data;
@@ -160,24 +165,14 @@ int main(){
     weights<double> w(&training_data);
 	
 	// Training
-	while(loop < times){
-		loop++;
-		error = 0.0;
-        w.feedforward();
-        w.backpropagation();
-		// Global error 
-		error = error / 2;
-		if(loop%1==0){
-			result = "Global Error = ";
-			sprintf(buffer, "%f(%02d th round)", error,loop);
-			result += buffer;
-			result += "\r\n";
+	while(loop < times){		
+        w.run();		
+		if(w.error < errlimit) break;
+		if(loop%100==0){
+		   printf("The %d th training, error: %f\n", loop, w.error);
 		}
-		if(error < errlimit)
-			break;
-
-		printf("The %d th training, error: %f\n", loop, error);
+		loop++;
 	}
-
+    return 0;
 }
 
