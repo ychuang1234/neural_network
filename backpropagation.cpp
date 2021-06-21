@@ -21,11 +21,32 @@ public:
 	   return(1.0 / (1.0 + exp(-x)));
     };
 }
+class dataset_loader{
+public:
+	typedef struct{
+	    double input[InputN];
+	    double teach[OutN];
+    }data;
+    data dataset[datanum];
+    dataset_loader(){
+    	for(m=0; m<datanum; m++){
+		   for(i=0; i<InputN; i++)
+			    data[m].input[i] = (double)rand()/32767.0;
+		   for(i=0;i<OutN;i++)
+			    data[m].teach[i] = (double)rand()/32767.0;
+	    }
+    };
+}
 
 template <typename T>
 class weights: public activation_function <T>{
 public:
-	weights();// constructor with parameter?
+	weights() {};
+	weights (dataset_loader* _dataset_ptr){
+        initialization();
+        dataset_ptr = _dataset_ptr;
+	};
+	dataset_loader* dataset_ptr;
 	T x_out[InputN];		// input layer
 	T hn_out[HN];			// hidden layer
 	T y_out[OutN];         // output layer
@@ -39,7 +60,7 @@ public:
 	T hn_delta[HN];		// delta of hidden layer
 	T y_delta[OutN];		// delta of output layer
 
-	// Initializition
+
 	void initialization(){ 
 	    for(i=0; i<InputN; i++){
 		    for(j=0; j<HN; j++){
@@ -49,46 +70,47 @@ public:
 	    }
 	    for(i=0; i<HN; i++){
 		   for(j=0; j<OutN; j++){
-			   v[i][j] = ((double)rand()/32767.0)*2-1;
+			   v[i][j] = ((T)rand()/32767.0)*2-1;
 			   deltav[i][j] = 0;
 		    }
 	    }
     };
 
     void feedforward(){
-    	for(m=0; m<datanum ; m++){
+    	int i,m;
+    	for(m=0; m<datanum; m++){
 			max = 0.0;
 			min = 0.0;
 			for(i=0; i<InputN; i++){
-				x_out[i] = data[m].input[i];
+				x_out[i] = dataset_ptr->dataset[m].input[i];
 				if(max < x_out[i])
 					max = x_out[i];
 				if(min > x_out[i])
 					min = x_out[i];
 			}
-		for(i=0; i<InputN; i++){
-			x_out[i] = (x_out[i] - min) / (max - min);
-		}
-
-		for(i=0; i<OutN ; i++){
-			y[i] = data[m].teach[i];
-		}
-
-		for(i=0; i<HN; i++){
-			sumtemp = 0.0;
-			for(j=0; j<InputN; j++)
-				sumtemp += w[j][i] * x_out[j];
-			hn_out[i] = sigmoid(sumtemp);		// sigmoid serves as the activation function
-		}
-
-		for(i=0; i<OutN; i++){
-			sumtemp = 0.0;
-			for(j=0; j<HN; j++)
-				sumtemp += v[j][i] * hn_out[j];
-		    y_out[i] = sigmoid(sumtemp);
-		}
+		    for(i=0; i<InputN; i++){
+			    x_out[i] = (x_out[i] - min) / (max - min);
+		    }
+    		for(i=0; i<OutN ; i++){
+			    y[i] = dataset_ptr->dataset[m].teach[i];
+		    }
+     		for(i=0; i<HN; i++){
+			    sumtemp = 0.0;
+		    	for(j=0; j<InputN; j++)
+		    		sumtemp += w[j][i] * x_out[j];
+		    	hn_out[i] = sigmoid<T>(sumtemp);
+		    }
+    		for(i=0; i<OutN; i++){
+		    	sumtemp = 0.0;
+		    	for(j=0; j<HN; j++)
+		    		sumtemp += v[j][i] * hn_out[j];
+		        y_out[i] = sigmoid<T>(sumtemp);
+		    }
+	    }
 	};
+
 	void backpropagation(){
+		int i;
 		for(i=0; i<OutN; i++){
 			errtemp = y[i] - y_out[i];
 			y_delta[i] = -errtemp * sigmoid(y_out[i]) * (1.0 - sigmoid(y_out[i]));
@@ -120,36 +142,23 @@ public:
 
 }
 int main(){
-	double sigmoid(double);
 	CString result = "";
 	char buffer[200];
-    weights<double> w;
-
 	double error;
 	double errlimit = 0.001;
 	double alpha = 0.1, beta = 0.1;
 	int loop = 0;
-	int times = 50000;
-	int i, j, m;
+	int times = 50;
 	double max, min;
 	double sumtemp;
 	double errtemp;
-	
-	// training set
-	struct{
-		double input[InputN];
-		double teach[OutN];
-	}data[datanum];
-	
-	// Generate data samples
-	// You can use your own data!!!
-	for(m=0; m<datanum; m++){
-		for(i=0; i<InputN; i++)
-			data[m].input[i] = (double)rand()/32767.0;
-		for(i=0;i<OutN;i++)
-			data[m].teach[i] = (double)rand()/32767.0;
-	}
 
+	// Generate data samples
+	dataset_loader training_data;
+	
+	//weights initializetion
+    weights<double> w(&training_data);
+	
 	// Training
 	while(loop < times){
 		loop++;
@@ -158,9 +167,9 @@ int main(){
         w.backpropagation();
 		// Global error 
 		error = error / 2;
-		if(loop%1000==0){
+		if(loop%1==0){
 			result = "Global Error = ";
-			sprintf(buffer, "%f", error);
+			sprintf(buffer, "%f(%02d th round)", error,loop);
 			result += buffer;
 			result += "\r\n";
 		}
