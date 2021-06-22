@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include <climits>
+#include "data_loader.hpp"
 #define InputN 64		// number of neurons in the input layer
 #define HN 25			// number of neurons in the hidden layer
 #define OutN 64			// number of neurons in the output layer
@@ -21,34 +22,17 @@ public:
 	   return(1.0 / (1.0 + exp(-x)));
     };
 };
-class dataset_loader{
-public:
-	typedef struct{
-	    double input[InputN];
-	    double teach[OutN];
-    }data;
-    data dataset[datanum];
-    dataset_loader(){
-    	int i,m;
-    	for(m=0; m<datanum; m++){
-		   for(i=0; i<InputN; i++)
-			    dataset[m].input[i] = (double)rand()/32767.0;
-		   for(i=0;i<OutN;i++)
-			    dataset[m].teach[i] = (double)rand()/32767.0;
-	    }
-	    //printf("Finish dataset_loader!!!\n");
-    };
-};
 
-template <typename T>
+
+template <typename T,typename U>
 class weights: public activation_function <T>{
 public:
 	weights() {};
-	weights (dataset_loader* _dataset_ptr){
+	weights (data_loader<U>* _dataset_ptr){
         initialization();
         dataset_ptr = _dataset_ptr;
 	};
-	dataset_loader* dataset_ptr;
+	data_loader<U>* dataset_ptr;
 	T x_out[InputN];		// input layer
 	T hn_out[HN];			// hidden layer
 	T y_out[OutN];         // output layer
@@ -79,7 +63,6 @@ public:
 			   deltav[i][j] = 0;
 		    }
 	    }
-	    //printf("Finish initialization!!!\n");
     };
     void run(){
         error = 0;
@@ -124,7 +107,7 @@ public:
 		int i,j;
 		for(i=0; i<OutN; i++){
 			errtemp = y[i] - y_out[i];
-			y_delta[i] = -errtemp * activation_function<T>::sigmoid(y_out[i]) * (1.0 - activation_function<T>::sigmoid(y_out[i]));
+			y_delta[i] = -errtemp * activation_function<T>::sigmoid(y_out[i]) * activation_function<T>::sigmoid((1.0 - y_out[i]));
 			error += errtemp * errtemp;
 		}
 
@@ -160,10 +143,10 @@ int main(){
 	int times = 5000;
 
 	// Generate data samples
-	dataset_loader training_data;
+	data_loader<double> training_data;
 	
 	//weights initializetion
-    weights<double> w(&training_data);
+    weights<double,double> w(&training_data);
 	
 	// Training
 	while(loop < times){		
@@ -174,6 +157,7 @@ int main(){
 		}
 		loop++;
 	}
+	
     return 0;
 }
 
