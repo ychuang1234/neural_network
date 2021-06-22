@@ -64,6 +64,7 @@ public:
     T errtemp,error,sumtemp;
     T max, min;
 	double alpha = 0.1, beta = 0.1;
+	int data_id = 0;
 	void initialization(){ 
 		int i,j;
 	    for(i=0; i<InputN; i++){
@@ -81,19 +82,19 @@ public:
 	    //printf("Finish initialization!!!\n");
     };
     void run(){
-        int m;
         error = 0;
-        for(m=0;m<datanum;m++){
-		    feedforward(m);
+        data_id = 0;
+        for(data_id;data_id<datanum;data_id++){
+		    feedforward();
 		    backpropagation();
         }
     };
-    void feedforward(int m){
+    void feedforward(){
     	int i,j;
   		max = 0.0;
 		min = 0.0;
 		for(i=0; i<InputN; i++){
-			x_out[i] = dataset_ptr->dataset[m].input[i];
+			x_out[i] = dataset_ptr->dataset[data_id].input[i];
 			if(max < x_out[i])
 				max = x_out[i];
 			if(min > x_out[i])
@@ -103,7 +104,7 @@ public:
 		    x_out[i] = (x_out[i] - min) / (max - min);
 		}
     	for(i=0; i<OutN ; i++){
-		    y[i] = dataset_ptr->dataset[m].teach[i];
+		    y[i] = dataset_ptr->dataset[data_id].teach[i];
 		}
 		for(i=0;i<HN;i++){
 			sumtemp = 0;
