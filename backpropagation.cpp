@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string>
 #include <climits>
-#include "data_loader.hpp"
+#include "data_loader_instantiated.hpp"
 #define InputN 64		// number of neurons in the input layer
 #define HN 25			// number of neurons in the hidden layer
 #define OutN 64			// number of neurons in the output layer
