@@ -1,8 +1,10 @@
-#include <vector>
 #include <cstring>
 #include <iostream>
 #include <stdexcept>
+#include <type_traits>
 #include "data_type.hpp"
+template <typename T>
+_1D_vector<T>::_1D_vector(){}
 
 template <typename T>
 _1D_vector<T>::_1D_vector(int len){
@@ -53,6 +55,13 @@ _1D_vector<T> operator- (_1D_vector<T>&ldata,_1D_vector<T>&rdata){
             res[i] = ldata[i]-rdata[i];
        	return res;
     }else throw std::invalid_argument("len of two array not the same!");
+}
+
+template <typename T>
+_1D_vector<T> _1D_vector<T>::operator=(_1D_vector<T>&data){
+	this->data.resize(data.length());
+	std::memcpy(&(this->data[0]),&data[0],data.length()*sizeof(T));
+	return *this;
 }
 /*
 int main(){

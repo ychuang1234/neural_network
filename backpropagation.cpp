@@ -14,7 +14,9 @@
 #define InputN 64		// number of neurons in the input layer
 #define HN 25			// number of neurons in the hidden layer
 #define OutN 64			// number of neurons in the output layer
-#define datanum 500		// number of training samples
+//#define datanum 500		// number of training samples
+
+int datanum = 500;
 template <typename T>
 class activation_function{
 public:
@@ -140,13 +142,12 @@ int main(){
 	double errlimit = 0.001;
 
 	int loop = 0;
-	int times = 5000;
-
+	int times = 5000;    
 	// Generate data samples
-	data_loader<double> training_data;
-	
+	data_loader<_1D_vector<double>> training_data(datanum,InputN,OutN);
+	/*
 	//weights initializetion
-    weights<double,double> w(&training_data);
+    weights<double,_1D_vector<double>> w(&training_data);
 	
 	// Training
 	while(loop < times){		
@@ -157,7 +158,7 @@ int main(){
 		}
 		loop++;
 	}
-	
+	*/
     return 0;
 }
 

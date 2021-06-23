@@ -1,32 +1,32 @@
 #ifndef DATA_TYPE_H
 #define DATA_TYPE_H 1
+#include <vector>
 template <typename T>
 class _1D_vector;
 
 template<typename T>
-std::ostream& operator<< ( std::ostream& os, _1D_vector<T>& L);
+std::ostream& operator<< ( std::ostream&, _1D_vector<T>&);
 
 template<typename T>
-_1D_vector<T> operator+ (_1D_vector<T>&lhs, _1D_vector<T>&rhs);
+_1D_vector<T> operator+ (_1D_vector<T>&, _1D_vector<T>&);
 
 template<typename T>
-_1D_vector<T> operator- (_1D_vector<T>&lhs, _1D_vector<T>&rhs);
-
-//template<typename T> 
-//T &operator[] (int i);
+_1D_vector<T> operator- (_1D_vector<T>&, _1D_vector<T>&);
 
 template <typename T>
 class _1D_vector{
 private:
 	std::vector<T> data;
 public:
+	_1D_vector();
 	_1D_vector(int len);
 	_1D_vector(T* start,int len);
 	int length();
 	T& operator[](int);
-    friend std::ostream& operator<< <>(std::ostream& os,_1D_vector& L);
-    friend _1D_vector<T> operator+ <> (_1D_vector&lhs,_1D_vector&rhs);
-    friend _1D_vector<T> operator- <> (_1D_vector&lhs,_1D_vector&rhs);
+	_1D_vector<T> operator= (_1D_vector<T>&);
+    friend std::ostream& operator<< <>(std::ostream&,_1D_vector&);
+    friend _1D_vector<T> operator+ <> (_1D_vector&,_1D_vector&);
+    friend _1D_vector<T> operator- <> (_1D_vector&,_1D_vector&);
 };
 
 #endif
