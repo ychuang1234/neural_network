@@ -26,42 +26,42 @@ public:
 };
 
 
-template <typename T,typename U>
-class weights: public activation_function <T>{
+template <typename I,typename O>
+class weights: public activation_function <I>{
 public:
 	weights() {};
-	weights (data_loader<U>* _dataset_ptr){
+	weights (data_loader<I,O>* _dataset_ptr){
         initialization();
         dataset_ptr = _dataset_ptr;
 	};
-	data_loader<U>* dataset_ptr;
-	T x_out[InputN];		// input layer
-	T hn_out[HN];			// hidden layer
-	T y_out[OutN];         // output layer
-	T y[OutN];				// expected output layer
-	T w[InputN][HN];		// weights from input layer to hidden layer
-	T v[HN][OutN];			// weights from hidden layer to output layer
+	data_loader<I,O>* dataset_ptr;
+	I x_out[InputN];		// input layer
+	I hn_out[HN];			// hidden layer
+	I y_out[OutN];         // output layer
+	I y[OutN];				// expected output layer
+	I w[InputN][HN];		// weights from input layer to hidden layer
+	I v[HN][OutN];			// weights from hidden layer to output layer
 	
-	T deltaw[InputN][HN];  
-	T deltav[HN][OutN];	
+	I deltaw[InputN][HN];  
+	I deltav[HN][OutN];	
 	
-	T hn_delta[HN];		// delta of hidden layer
-	T y_delta[OutN];		// delta of output layer
-    T errtemp,error,sumtemp;
-    T max, min;
+	I hn_delta[HN];		// delta of hidden layer
+	I y_delta[OutN];		// delta of output layer
+    I errtemp,error,sumtemp;
+    I max, min;
 	double alpha = 0.1, beta = 0.1;
 	int data_id = 0;
 	void initialization(){ 
 		int i,j;
 	    for(i=0; i<InputN; i++){
 		    for(j=0; j<HN; j++){
-			    w[i][j] = ((T)rand()/32767.0)*2-1;
+			    w[i][j] = ((I)rand()/32767.0)*2-1;
 			    deltaw[i][j] = 0;
 		    }
 	    }
 	    for(i=0; i<HN; i++){
 		   for(j=0; j<OutN; j++){
-			   v[i][j] = ((T)rand()/32767.0)*2-1;
+			   v[i][j] = ((I)rand()/32767.0)*2-1;
 			   deltav[i][j] = 0;
 		    }
 	    }
@@ -95,13 +95,13 @@ public:
 			sumtemp = 0;
 	    	for(j=0; j<InputN; j++)
 	    		sumtemp += w[j][i] * x_out[j];
-	    	hn_out[i] = activation_function<T>::sigmoid(sumtemp);
+	    	hn_out[i] = activation_function<I>::sigmoid(sumtemp);
 	    }
    		for(i=0; i<OutN; i++){
 		    sumtemp = 0;
 		    for(j=0; j<HN; j++)
 		    	sumtemp += v[j][i] * hn_out[j];
-		    y_out[i] = activation_function<T>::sigmoid(sumtemp);
+		    y_out[i] = activation_function<I>::sigmoid(sumtemp);
 		}
 	};
 
@@ -109,7 +109,7 @@ public:
 		int i,j;
 		for(i=0; i<OutN; i++){
 			errtemp = y[i] - y_out[i];
-			y_delta[i] = -errtemp * activation_function<T>::sigmoid(y_out[i]) * activation_function<T>::sigmoid((1.0 - y_out[i]));
+			y_delta[i] = -errtemp * activation_function<I>::sigmoid(y_out[i]) * activation_function<I>::sigmoid((1.0 - y_out[i]));
 			error += errtemp * errtemp;
 		}
 
@@ -144,7 +144,7 @@ int main(){
 	int loop = 0;
 	int times = 5000;    
 	// Generate data samples
-	data_loader<_1D_vector<double>> training_data(datanum,InputN,OutN);
+	data_loader<_1D_vector<double>,_1D_vector<double>> training_data(datanum,InputN,OutN);
 	/*
 	//weights initializetion
     weights<double,_1D_vector<double>> w(&training_data);

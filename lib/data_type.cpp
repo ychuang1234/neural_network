@@ -10,6 +10,8 @@ template <typename T>
 _1D_vector<T>::_1D_vector(int len){
 	data.resize(len);
 }
+template <typename T>
+_1D_vector<T>::_1D_vector(int dim1,int dim2){}
 
 template <typename T>
 _1D_vector<T>::_1D_vector(T* start,int len){
@@ -67,6 +69,8 @@ _1D_vector<T> _1D_vector<T>::operator=(_1D_vector<T>data){
 //2D vector:
 template <typename T>
 _2D_vector<T>::_2D_vector(){}
+template <typename T>
+_2D_vector<T>::_2D_vector(int dim1){}
 
 template <typename T>
 _2D_vector<T>::_2D_vector(int dim1, int dim2){
@@ -147,7 +151,7 @@ _2D_vector<T> _2D_vector<T>::operator=(_2D_vector<T>data){
 	return *this;
 }
 
-
+/*
 int main(){
 	int a[] = {0,1,2,3,4,5};
 	int b[] = {5,6,7,8,9,10};
@@ -175,3 +179,4 @@ int main(){
 	std::cout<<k<<std::endl;
 	std::cout<<m<<std::endl;
 }
+*/

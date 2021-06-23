@@ -4,8 +4,8 @@ export TARGET
 all: clean $(TARGET)
 
 $(TARGET): 
-	g++ -c  backpropagation.cpp data_loader_instantiated.cpp
-	g++ -o $@ backpropagation.o data_loader_instantiated.o
+	g++ -c  backpropagation.cpp interface.cpp
+	g++ -o $@ backpropagation.o interface.o
 
 clean:
 	del $(TARGET)

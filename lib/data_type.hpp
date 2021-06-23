@@ -19,6 +19,7 @@ private:
 public:
 	_1D_vector();
 	_1D_vector(int);
+	_1D_vector(int,int);
 	_1D_vector(T*,int);
 	int length();
 	T& operator[](int);
@@ -45,6 +46,7 @@ private:
 	std::vector<_1D_vector<T>> data;
 public:
 	_2D_vector();
+	_2D_vector(int);
 	_2D_vector(int,int);
 	_2D_vector(T*,int,int);
 	int length();
