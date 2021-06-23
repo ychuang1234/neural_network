@@ -1,22 +1,6 @@
-/************************************************
-* Backpropagation algorithm.
-*
-* Training a Neural Network, or an Autoencoder.
-*
-************************************************/
-
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string>
-#include <climits>
-#include "interface.hpp"
-#define InputN 64		// number of neurons in the input layer
-#define HN 25			// number of neurons in the hidden layer
-#define OutN 64			// number of neurons in the output layer
-//#define datanum 500		// number of training samples
-
-int datanum = 500;
+#ifndef WEIGHTS_H
+#define WEIGHTS_H 1
+#include "data_type.hpp"
 template <typename T>
 class activation_function{
 public:
@@ -25,8 +9,7 @@ public:
     };
 };
 
-
-template <typename I,typename O>
+template <typename T,int InputN,int OutN>
 class weights: public activation_function <I>{
 public:
 	weights() {};
@@ -35,21 +18,15 @@ public:
         dataset_ptr = _dataset_ptr;
 	};
 	data_loader<I,O>* dataset_ptr;
-	I x_out[InputN];		// input layer
-	I hn_out[HN];			// hidden layer
-	I y_out[OutN];         // output layer
-	I y[OutN];				// expected output layer
-	I w[InputN][HN];		// weights from input layer to hidden layer
-	I v[HN][OutN];			// weights from hidden layer to output layer
-	
-	I deltaw[InputN][HN];  
-	I deltav[HN][OutN];	
-	
-	I hn_delta[HN];		// delta of hidden layer
-	I y_delta[OutN];		// delta of output layer
+	T w[OutN];		   //hidden layer
+	T out[OutN];       //output layer
+	T deltaw[InputN];  //derivative
+	/* need to put into another class
+	I delta[HN];	   //delta of hidden layer
     I errtemp,error,sumtemp;
     I max, min;
-	double alpha = 0.1, beta = 0.1;
+    double alpha = 0.1, beta = 0.1;
+	*/
 	int data_id = 0;
 	void initialization(){ 
 		int i,j;
@@ -137,28 +114,4 @@ public:
 		error = error / 2;
 	};
 };
-int main(){
-	char buffer[200];
-	double errlimit = 0.001;
-
-	int loop = 0;
-	int times = 5000;    
-	// Generate data samples
-	data_loader<_1D_vector<double>,_1D_vector<double>> training_data(datanum,InputN,OutN);
-	/*
-	//weights initializetion
-    weights<double,_1D_vector<double>> w(&training_data);
-	
-	// Training
-	while(loop < times){		
-        w.run();		
-		if(w.error < errlimit) break;
-		if(loop%100==0){
-		   printf("The %d th training, error: %f\n", loop, w.error);
-		}
-		loop++;
-	}
-	*/
-    return 0;
-}
-
+#endif
