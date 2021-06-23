@@ -12,12 +12,10 @@ data_loader<T>::data_loader(int datanum,int InputN, int OutN){
 	dataset = new data[datanum];
 	int m;
 	for(m=0;m<datanum;m++){
-		//dataset[m].input = new T;
 		T tmp = T(InputN);
     	dataset[m].input= tmp;
-		//dataset[m].teach = new T;
 		tmp = T(OutN);
-    	dataset[m].teach=tmp_out;
+    	dataset[m].teach=tmp;
 	}	
 }
 //template class data_loader<double>::data_loader();
