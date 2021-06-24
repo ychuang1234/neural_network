@@ -120,7 +120,7 @@ public:
 			hn_delta[i] = errtemp * (1.0 + hn_out[i]) * (1.0 - hn_out[i]);
 		}
 
-		// Stochastic gradient descent
+		//Stochastic gradient descent
 		for(i=0; i<OutN; i++){
 			for(j=0; j<HN; j++){
 				deltav[j][i] = alpha * deltav[j][i] + beta * y_delta[i] * hn_out[j];

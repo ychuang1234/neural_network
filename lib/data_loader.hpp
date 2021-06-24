@@ -11,10 +11,18 @@ public:
 	    I input;
 	    O teach;
     }data;
+    int datanum;
     data *dataset;
+    int start_id;
+    int batch_size;
+    vector<I> batch_x;
+    vector<O> batch_y;
     data_loader();
     data_loader(int,int,int);
     data_loader(int,int,int,int,int);
+    int load_batch();
+
+
 };
 
 //template specialization for double
