@@ -30,7 +30,7 @@ int _1D_vector<T>::length(){
 }
 
 template <typename T>
-void _1D_vector<T>::push(T&data){
+void _1D_vector<T>::push(T data){
 	this->data.resize(length()+1);
 	this->data[length()-1] = data;
 }
@@ -45,12 +45,18 @@ void _1D_vector<T>::push(_1D_vector<T>&data){
 }
 
 template <typename T>
-std::vector<_2D_vector<T>> _1D_vector<T>::reshape(int dim1, int dim2){
-	std::vector<_2D_vector<T>> res(length()/dim1/dim2);
+void _1D_vector<T>::reshape(std::vector<_2D_vector<T>>&x,int dim1, int dim2){
+	x.resize(length()/dim1/dim2);
+	_2D_vector<T> tmp (dim1,dim2);
 	int i;
-	for(i=0;i<data.length();){
+	for(i=0;i<x.size();i++){
+		x[i] = tmp;
+	}
+	//x[0][0].data.resize(dim2);
+	for(i=0;i<this->length();){
+		//printf("In 1D reshape: %d,%d,%d\n",i,i/dim1/dim2,(i%(dim1*dim2))/dim2);
 		_1D_vector<T> tmp(&(this->data[i]),dim2);
-		res[i/dim1/dim2][(i%(dim1*dim2))/dim2] = tmp;
+		x[i/dim1/dim2][(i%(dim1*dim2))/dim2] = tmp;
 		i += dim2;
 	}
 }
@@ -163,12 +169,11 @@ int _2D_vector<T>::length(){
 }
 
 template <typename T>
-_1D_vector<T>& _2D_vector<T>::flat(){
+void _2D_vector<T>::flat(_1D_vector<T>&x){
 	int i,j;
 	_1D_vector<T> res;
 	for (i=0;i<length();i++)
-		res.push(this->data[i]);
-	return res;
+		x.push(this->data[i]);
 }
 template <typename T>
 void _2D_vector<T>::push(_1D_vector<T>&data){
@@ -391,12 +396,16 @@ public:
 		delta.resize(OutN);
 		w.resize(OutN);
 		deltaw.resize(OutN);
-		int i;
+		int i,j;
 		for(i=0;i<OutN;i++){
 			w[i].resize(InputN);
-			deltaw[i].resize(OutN);
+			deltaw[i].resize(InputN);
+			T tmp(kernel_dim1,kernel_dim2);
+			for(j=0;j<InputN;j++){				
+				w[i][j] = tmp;
+			}
 		}
-		initialize();
+		//initialize();
 	};
 	int dim1(){
 		return w.size();
@@ -405,7 +414,18 @@ public:
 	int dim2(){
 		return w[0].size();
 	}
-    
+    void print_w(){
+    	int i,j;
+    	for(i=0;i<OutN;i++){
+    		std::cout<<"[";
+    		std::cout<<"["<<w[i][0]<<std::endl;
+    		for(j=1;j<InputN;j++){
+    			//printf("Input print w:%d,%d\n",i,j);
+    			std::cout<<" "<<w[i][j]<<std::endl;
+    			//std::cout<<"  ";
+    		}
+    	}
+    }
     /* according to axis 1*/
     _2D_vector<D>& _flat(){
     	_2D_vector<D> res(dim1());
@@ -514,6 +534,7 @@ public:
 
 
 int main(){
+	
 	int a[] = {0,1,2,3,4,5};
 	int b[] = {5,6,7,8,9,10};
 	int r;
@@ -532,8 +553,19 @@ int main(){
 	int c = x.dot_sum(y);
 	_2D_vector<int>l = dot(i,j);
 	_2D_vector<int>m = i*k;
+	_1D_vector<int> tmp;
+	std::vector<_2D_vector<int>> tmp1;
+	m.flat(tmp);
+	tmp.reshape(tmp1,3,1);
 	std::cout<<z<<std::endl;
 	std::cout<<c<<std::endl;
 	std::cout<<l<<std::endl;
 	std::cout<<m<<std::endl;
+	std::cout<<tmp<<std::endl;
+	std::cout<<tmp1[0]<<std::endl;
+	
+	tensor<_2D_vector<int>,int>tmp3(4,2,3,3);
+	std::cout<<tmp3[0][0]<<std::endl;
+	tmp3.print_w();
+	//tmp._flat();
 }

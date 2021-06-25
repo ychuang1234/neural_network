@@ -22,17 +22,16 @@ template<typename T>
 _1D_vector<T> dot (_1D_vector<T>&, _1D_vector<T>&);
 template <typename T>
 class _1D_vector{
-private:
-	std::vector<T> data;
 public:
+	std::vector<T> data;
 	_1D_vector();
 	_1D_vector(int);
 	_1D_vector(int,int);
 	_1D_vector(T*,int);
 	int length();
-	void push(T&);
+	void push(T);
 	void push(_1D_vector<T>&);
-	std::vector<_2D_vector<T>> reshape(int,int);
+	void reshape(std::vector<_2D_vector<T>>&,int,int);
 	T& operator[](int);
 	_1D_vector<T> operator= (_1D_vector<T>);
 	T dot_sum( _1D_vector<T>&);
@@ -61,15 +60,14 @@ _2D_vector<T> dot (_2D_vector<T>&, _2D_vector<T>&);
 
 template <typename T>
 class _2D_vector{
-private:
-	std::vector<_1D_vector<T>> data;
 public:
+	std::vector<_1D_vector<T>> data;
 	_2D_vector();
 	_2D_vector(int);
 	_2D_vector(int,int);
 	_2D_vector(T*,int,int);
 	int length();
-	_1D_vector<T>& flat();
+	void flat(_1D_vector<T>&);
 	void push(_1D_vector<T>&);
 	void push(_2D_vector<T>&);
 	_1D_vector<T>& operator[](int);
