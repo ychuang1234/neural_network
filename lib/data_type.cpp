@@ -3,6 +3,14 @@
 #include <stdexcept>
 #include <type_traits>
 #include "data_type.hpp"
+/*sigmoid*/
+template <typename T>
+class activation_function<T>{
+	T sigmoid(T x){
+		return(1.0/ (1.0+ exp(-x)));
+	}
+}
+/*1D*/
 template <typename T>
 _1D_vector<T>::_1D_vector(){}
 
@@ -21,6 +29,21 @@ _1D_vector<T>::_1D_vector(T* start,int len){
 template <typename T>
 int _1D_vector<T>::length(){
 	return data.size();
+}
+
+template <typename T>
+void _1D_vector<T>::push(T&data){
+	this->data.resize(length()+1);
+	this->data[length()-1] = data;
+}
+
+template <typename T>
+void _1D_vector<T>::push(_1D_vector<T>&data){
+	int i = length();
+	int j;
+	this->data.resize(length()+data.length());
+	for (j=0;j<data.length();j++)
+		this->data[i+j] = data[j];
 }
 template <typename T>
 T& _1D_vector<T>::operator[](int i){
@@ -98,6 +121,28 @@ _2D_vector<T>::_2D_vector(T* start,int dim1, int dim2){
 template <typename T>
 int _2D_vector<T>::length(){
 	return data.size();
+}
+
+template <typename T>
+_1D_vector<T>& _2D_vector<T>::flat(){
+	int i,j;
+	for (i=0;i<length();i++)
+		_1D_vector.push(this->data[0]);
+	return data.size();
+}
+template <typename T>
+void _2D_vector<T>::push(_1D_vector<T>&data){
+	this->data.resize(length()+1);
+	this->data[length()-1] = data;
+}
+
+template <typename T>
+void _2D_vector<T>::push(_2D_vector<T>&data){
+	int i = length();
+	int j;
+	this->data.resize(length()+data.length());
+	for (j=0;j<data.length();j++)
+		this->data[i+j] = data[j];
 }
 template <typename T>
 _1D_vector<T>& _2D_vector<T>::operator[](int i){
@@ -237,6 +282,61 @@ _3D_vector<T> _3D_vector<T>::operator=(_3D_vector<T>data){
 	for (i=0;i<length();i++){
 		this->data[i] = data[i];
 	}	
+	return *this;
+}
+
+
+template <typename T>
+class tensor: public activation_function <T>{
+public:
+	//T is 2D
+	vector<T>delta;       //delta of hidden layer:2D
+	vector<*T>w;		  //weights:3D (out*in*weights)
+	vector<*T>deltaw;    //derivative:3D (out*in*weights)
+	tensor(int InputN,int OutN,int kernel_dim1, int kernel_dim2) {
+		delta.resize(OutN);
+		w.resize(OutN);
+		deltaw.resize(OutN);
+		int i;
+		for(i=0;i<OutN;i++){
+			w = new T(kernel_dim1,kernel_dim2)[InputN];
+			deltaw = new T(kernel_dim1,kernel_dim2)[OutN];
+		}
+		initialize();
+	};
+	int length(){
+		return w.size();
+	}
+	void initialize(){ 
+		int i,j;
+	    for(i=0; i<OutN; i++)
+	    	for(j=0;j<InputN;j++)
+				w[i][j].initialize();
+		
+    }
+    /*
+    void activate(){
+    	int i,j;
+    	for(i=0;i<w.size();i++){
+    		for(j=0;j<w[0].length();j++){
+    			activation_function<I>::sigmoid(w[i][j]);		
+    		}
+    	}
+    }
+    */
+    tensor<T> operator= (tensor<T>);
+};
+
+template <typename T>
+T& class tensor<T>::operator[](int i){
+	if (i<length()) return w[i];
+	else throw std::out_of_range("Index out of bounds");
+}
+
+template <typename T>
+tensor<T> tensor<T>::operator=(tensor<T>data){
+	this->data.resize(data.length());
+	std::memcpy(&(this->data[0]),&data[0],data.length()*sizeof(T));
 	return *this;
 }
 /*

@@ -1,8 +1,14 @@
 #ifndef DATA_TYPE_H
 #define DATA_TYPE_H 1
 #include <vector>
+template <typename T>
+class activation_function<T>{
+	T sigmoid(T x){
+		return(1.0/ (1.0+ exp(-x)));
+	}
+}
 /*1D*/
-template <typename T> class _1D_vector;
+template <typename T> class _1D_vector:public activation_function<T>;
 
 template<typename T>
 std::ostream& operator<< ( std::ostream&, _1D_vector<T>&);
@@ -23,6 +29,8 @@ public:
 	_1D_vector(int,int);
 	_1D_vector(T*,int);
 	int length();
+	void push(T&);
+	void push(_1D_vector<T>&);
 	T& operator[](int);
 	_1D_vector<T> operator= (_1D_vector<T>);
     friend std::ostream& operator<< <>(std::ostream&,_1D_vector&);
@@ -51,6 +59,9 @@ public:
 	_2D_vector(int,int);
 	_2D_vector(T*,int,int);
 	int length();
+	_1D_vector<T>& flat();
+	void push(_1D_vector<T>&);
+	void push(_2D_vector<T>&);
 	_1D_vector<T>& operator[](int);
 	_2D_vector<T> operator= (_2D_vector<T>);
     friend std::ostream& operator<< <>(std::ostream&,_2D_vector&);
