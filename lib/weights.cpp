@@ -1,10 +1,8 @@
 #include "data_type.hpp"
 #include <vector>
-template <typename T>
-
 /*template <_1D_vector<double>,_1D_vector<double>,_2D_vector<double>,double> class nn*/
 template <typename I, typename O,typename W,typename D>
-class nn: public tensor<W>{
+class nn: public tensor<W,D>{
 	tensor<W> wt();
 	nn(){}
 	conv1d(int out, int in, int kernel_dim1){
@@ -22,17 +20,9 @@ class nn: public tensor<W>{
 		wt = tmp;
 		return *this;
 	}
-    vector<I>& forward(vector<I>&x){
-    	/*data: channel*data_dim1*data_dim2*/
-    	vector<I>res;
-
-    	/*weights: out*in*w_dim1*w_dim2*/
-    	_2D_vector<D> P(kernel_dim1*kernel_dim2*input_channel,out_dim1*out_dim2);
-    	_2D_vector<D> K(output,kernel_dim1*kernel_dim2*input_channel);
-    	_2D_vector<D> Z(outtput,out_dim1*out_dim2);
-       	int i=0,j=0,k;
-       	int row=0,column=0;
-       	/*convolution: parallel?*/
+	_2D_vector<D>& input_flat(vector<I>&x){
+		_2D_vector<D> res(kernel_dim1*kernel_dim2*input_channel,out_dim1*out_dim2);
+	    /*convolution: parallel?*/
        	while((i+kernel_dim1-1)<x[0].length()){
        		while((j+kernel_dim2-1)<x[0][0].length()){
        			/*for each channel*/
@@ -40,55 +30,40 @@ class nn: public tensor<W>{
        				int m,n;
        				for(m=0;m<kernel_dim1;m++)
        					for(n=0;n<kernel_dim2;n++)
-       						P[row][column]=x[i+m][j+n]
+       						res[row][column]=x[i+m][j+n]
        						column++; 
        			}
-       			i++;
-       			j++;
+       			i++;//stride
+       			j++;//stride
        			column=0;
        			row++;
        		}
        	}
-       	/*If no need to transfrom data to 2D first*/
-       	column = 0;
-       	for(i=0;i<wt.length();i++){
-       		for(j=0;j<wt[0].length();j++){
-       			for(m=0;m<wt[0][0].length();m++)
-       				for(n=0;n<wt[0][0][0].length();n++)
-       					K[i][column] = wt[i][j][m][n];
-       					column++;
-       		}
-       		column = 0;
-       	}
-       	/*no this part*/
-       	/*Z = K*P;
-       	for(i=0;i<Z.length();i++){
-       		for(j=0;j<out_dim1*out_dim2;j++){
-       			res[i][j/out_dim1][j%out_dim1] = Z[i][j];
-       		}
-       	}
+       	return res;	
+	}
 
-       	for(i=0;i<K.length();i++){
-       		for(j=0;j<K[0].length();j++){
-       			wt[i][j/(kernel_dim1*kernel_dim2)][j/kernel_dim1][j%kernel_dim1] = K[i][j];
+	vector<I>& output_reshape(_2D_vector<D>&x){
+		_2D_vector<D> res(outtput,out_dim1*out_dim2)
+		for(i=0;i<x.length();i++){
+       		for(j=0;j<out_dim1*out_dim2;j++){
+       			res[i][j/out_dim1][j%out_dim1] = x[i][j];
        		}
-       	}     	
-		*/
-       	/*
-    	int i,j;
-		for(i=0;i<HN;i++){
-			sumtemp = 0;
-	    	for(j=0; j<InputN; j++)
-	    		sumtemp += w[j][i] * x_out[j];
-	    	hn_out[i] = activation_function<I>::sigmoid(sumtemp);
-	    }
-   		for(i=0; i<OutN; i++){
-		    sumtemp = 0;
-		    for(j=0; j<HN; j++)
-		    	sumtemp += v[j][i] * hn_out[j];
-		    y_out[i] = activation_function<I>::sigmoid(sumtemp);
-		}
-		*/
+       	}
+       	return res;
+	}
+    vector<I>& forward(vector<I>&x){
+    	/*data: channel*data_dim1*data_dim2*/
+    	vector<I>res;
+    	/*weights: out*in*w_dim1*w_dim2*/
+    	_2D_vector<D> P(kernel_dim1*kernel_dim2*input_channel,out_dim1*out_dim2);
+    	P = input_flat(x);
+    	_2D_vector<D> K(output,kernel_dim1*kernel_dim2*input_channel);
+    	K = flat();
+    	_2D_vector<D> Z(output,out_dim1*out_dim2);
+    	Z = K*P;    	
+    	x = output_reshape(Z);//std::move() instead?
+    	return x;
+
 	};
 	/*
 	void backpropagation(){
