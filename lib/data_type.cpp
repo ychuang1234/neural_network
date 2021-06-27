@@ -547,16 +547,6 @@ public:
        	print_w();
        	_reshape_output(Z,x,out_dim1,out_dim2);
        	printf("Output size:(%d,%d,%d)\n",x.size(),x[0].length(),x[0][0].length());
-
-      	/*
-       	
-       	for(i=0;i<Z.length();i++){
-       		for(j=0;j<out_dim1*out_dim2;j++){
-       			res[i][j/out_dim1][j%out_dim1] = Z[i][j];
-       		}
-       	}
-       	*/
-       	
     }
     /*
     void activate(){
