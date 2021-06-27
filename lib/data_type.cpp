@@ -14,6 +14,7 @@ _1D_vector<T>::_1D_vector(){}
 
 template <typename T>
 _1D_vector<T>::_1D_vector(int len){
+	//printf("In 1D vector (%d)\n",len);
 	data.resize(len);
 }
 template <typename T>
@@ -39,7 +40,9 @@ template <typename T>
 void _1D_vector<T>::push(_1D_vector<T>&data){
 	int i = length();
 	int j;
+	//printf("In 1D push: input before len: %d\n",i);
 	this->data.resize(length()+data.length());
+	//printf("In 1D push: input after len: %d\n",this->length());
 	for (j=0;j<data.length();j++)
 		this->data[i+j] = data[j];
 }
@@ -145,6 +148,7 @@ _2D_vector<T>::_2D_vector(int dim1){}
 
 template <typename T>
 _2D_vector<T>::_2D_vector(int dim1, int dim2){
+	//printf("In 2D vector (%d,%d)\n",dim1,dim2);
 	data.resize(dim1);
 	int i;
 	for(i=0;i<dim1;i++){
@@ -171,9 +175,14 @@ int _2D_vector<T>::length(){
 template <typename T>
 void _2D_vector<T>::flat(_1D_vector<T>&x){
 	int i,j;
-	_1D_vector<T> res;
-	for (i=0;i<length();i++)
-		x.push(this->data[i]);
+	for (i=0;i<length();i++){
+		//printf("In 2D flat i:%d...\n",i);
+		if (i==0&&x.length()==1){
+			x = this->data[0];
+		}else{
+			x.push(this->data[i]);
+		}
+	}
 }
 template <typename T>
 void _2D_vector<T>::push(_1D_vector<T>&data){
@@ -229,9 +238,14 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, _2D_vector<T>& L){
 	int i;
 	os<<"["<<L[0]<<","<<std::endl;
-    for (i=1;i!=L.length()-1;i++)
-    	os<<" "<<L[i]<<","<<std::endl;
-    os<<" "<<L[i]<<"]";
+    for (i=1;i<L.length();i++){
+    	if (i!=L.length()-1){
+	    	os<<" "<<L[i]<<","<<std::endl;
+	    }else{
+	    	os<<" "<<L[i];
+	    }
+    }
+    std::cout<<"]"<<std::endl;
     return os;
 }
 
@@ -401,8 +415,15 @@ public:
 			w[i].resize(InputN);
 			deltaw[i].resize(InputN);
 			T tmp(kernel_dim1,kernel_dim2);
+			int m,n;
+			for (m=0;m<kernel_dim1;m++){
+				for(n=0;n<kernel_dim2;n++){
+					tmp[m][n] = m+n;
+				}
+			}
 			for(j=0;j<InputN;j++){				
 				w[i][j] = tmp;
+
 			}
 		}
 		//initialize();
@@ -427,25 +448,43 @@ public:
     	}
     }
     /* according to axis 1*/
-    _2D_vector<D>& _flat(){
-    	_2D_vector<D> res(dim1());
+    void _flat(_2D_vector<D>&x){
+    	_2D_vector<D> res(dim1(),1);
     	int i,j;
+    	//printf("In tensor _flat:(%d,%d)\n",dim1(),dim2());
     	for(i=0;i<dim1();i++){
-    		for(j=0;j<dim2();j++)
-    			//1D vector
-    			res[i] = w[i][j].flat();
+    		//printf("In tensor _flat i:%d\n",i);
+    		for(j=0;j<dim2();j++){
+    			//printf("In tensor _flat j:%d\n",j);			
+    			w[i][j].flat(res[i]);
+    		}
     	}
+    	//std::cout<<"_flat: "<<res<<std::endl;
+    	x = res;    	
     }
 
     /* according to axis 1*/
-    void _reshape(_2D_vector<D> data){
+    void _reshape(_2D_vector<D>& data,int kernel_dim1, int kernel_dim2){
     	int i,j;
     	for(i=0;i<dim1();i++){
-   			//vector of 2D vector
-   			this->w[i] = data[i].reshape(kernel_dim1,kernel_dim2);
+   			//printf("In tensor weight reshape i:%d\n",i);
+   			data[i].reshape(w[i], kernel_dim1, kernel_dim2);
     	}
     }
 
+    void _reshape_output(_2D_vector<D>& data,std::vector<_2D_vector<D>>& x,int out_dim1, int out_dim2){
+    	int i,j;
+    	x.resize(OutN);
+    	for(i=0;i<dim1();i++){
+   			//printf("In output reshape i:%d/%d\n",i,dim1());
+   			std::vector<_2D_vector<D>> tmp;
+   			//printf("In output shape before...\n");
+   			data[i].reshape(tmp, out_dim1, out_dim2);
+   			//printf("In output shape after:%d...\n",tmp.size());
+
+   			x[i] = tmp[0];
+    	}
+    }
     void initialize(){ 
 		int i,j;
 	    for(i=0; i<dim1(); i++)
@@ -454,47 +493,70 @@ public:
 		
     }
 
-    std::vector<T>& forward(std::vector<T>&x){
+    void forward(std::vector<T>&x){
     	/*data: channel*data_dim1*data_dim2*/
     	std::vector<T>res;
     	int out_dim1,out_dim2;
 		out_dim1 = x[0].length()-kernel_dim1+1;
 		out_dim2 = x[0][0].length()-kernel_dim2+1;
+		printf("Input size:(%d,%d),Output size:(%d,%d)\n",x[0].length(),x[0][0].length(),out_dim1,out_dim2);
     	/*weights: out*in*w_dim1*w_dim2*/
     	_2D_vector<D> P(kernel_dim1*kernel_dim2*InputN,out_dim1*out_dim2);
     	_2D_vector<D> K(OutN,kernel_dim1*kernel_dim2*InputN);
-    	K = _flat();
+    	//std::cout<<K<<std::endl;
+    	_flat(K);
+    	printf("K size:(%d,%d)\n",K.length(),K[0].length());
+	   	std::cout<<"K:"<<std::endl;
+	   	std::cout<<K<<std::endl;
     	_2D_vector<D> Z(OutN,out_dim1*out_dim2);
        	int i=0,j=0,k;
        	int row=0,column=0;
-       	/*convolution: parallel?*/
-       	while((i+kernel_dim1-1)<x.dim2()){
+       	//convolution: parallel?
+       	printf("Start conv...\n");
+       	while((i+kernel_dim1-1)<x[0].length()){
+       		//printf("i:%d/%d\n",i,x[0].length());
        		while((j+kernel_dim2-1)<x[0][0].length()){
-       			/*for each channel*/
-       			for(k=0;k<x.dim1();k++){
+       			//printf("j:%d/%d\n",j,x[0][0].length());
+       			//for each channel
+       			for(k=0;k<x.size();k++){
        				int m,n;
        				for(m=0;m<kernel_dim1;m++){
        					for(n=0;n<kernel_dim2;n++){
-       						P[row][column]=x[i+m][j+n];
-       						column++; 
+       						//printf("m:%d/%d,n:%d/%d,row:%d,col:%d\n",m,kernel_dim1,n,kernel_dim2,row,column);
+       						P[row][column]=x[k][i+m][j+n];
+       						row++; 
        					}
        				}
        			}
-       			i++;
        			j++;
-       			column=0;
-       			row++;
+       			row=0;
+       			column++;
        		}
+       		i++;
+       		j=0;
        	}
+       	printf("Done conv...\n");
+       	printf("P size:(%d,%d)\n",P.length(),P[0].length()); 
+       	std::cout<<"P:"<<std::endl;
+       	std::cout<<P<<std::endl;        	
        	Z = K*P;
-       	_reshape(Z);
-      	
+       	printf("Z size:(%d,%d)\n",Z.length(),Z[0].length());
+       	std::cout<<"Z:"<<std::endl;
+       	std::cout<<Z<<std::endl;  
+       	_reshape(K,kernel_dim1,kernel_dim2);
+       	print_w();
+       	_reshape_output(Z,x,out_dim1,out_dim2);
+       	printf("Output size:(%d,%d,%d)\n",x.size(),x[0].length(),x[0][0].length());
+
+      	/*
        	
        	for(i=0;i<Z.length();i++){
        		for(j=0;j<out_dim1*out_dim2;j++){
        			res[i][j/out_dim1][j%out_dim1] = Z[i][j];
        		}
        	}
+       	*/
+       	
     }
     /*
     void activate(){
@@ -534,7 +596,7 @@ public:
 
 
 int main(){
-	
+	/*
 	int a[] = {0,1,2,3,4,5};
 	int b[] = {5,6,7,8,9,10};
 	int r;
@@ -563,9 +625,30 @@ int main(){
 	std::cout<<m<<std::endl;
 	std::cout<<tmp<<std::endl;
 	std::cout<<tmp1[0]<<std::endl;
+	*/
+	tensor<_2D_vector<int>,int>tmp3(1,2,3,3);
+	tensor<_2D_vector<int>,int>tmp6(2,1,3,3);
+	//std::cout<<tmp3[0][0]<<std::endl;
+	//tmp3.print_w();
+	//_2D_vector<int> tmp4;
+	//tmp3._flat(tmp4);
+	//std::cout<<tmp4<<std::endl;
+	//tmp3._reshape(tmp4);
+	//tmp3.print_w();
+	std::vector<_2D_vector<int>> tmp5(1);
+	int i,j,k;
+	for(i=0;i<tmp5.size();i++){
+		tmp5[i].data.resize(12,12);
+		for(j=0;j<tmp5[0].length();j++){
+			for(k=0;k<tmp5[0][0].length();k++){
+				tmp5[i][j][k] = i+j+k;
+			}
+		}	
+	}
+	std::cout<<"Input:"<<std::endl;
+	std::cout<<tmp5[0]<<std::endl;
+
+	tmp3.forward(tmp5);
+	tmp6.forward(tmp5);
 	
-	tensor<_2D_vector<int>,int>tmp3(4,2,3,3);
-	std::cout<<tmp3[0][0]<<std::endl;
-	tmp3.print_w();
-	//tmp._flat();
 }
