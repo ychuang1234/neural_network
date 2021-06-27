@@ -512,7 +512,7 @@ public:
        	int i=0,j=0,k;
        	int row=0,column=0;
        	//convolution: parallel?
-       	printf("Start conv...\n");
+       	//printf("Start conv...\n");
        	while((i+kernel_dim1-1)<x[0].length()){
        		//printf("i:%d/%d\n",i,x[0].length());
        		while((j+kernel_dim2-1)<x[0][0].length()){
@@ -535,7 +535,7 @@ public:
        		i++;
        		j=0;
        	}
-       	printf("Done conv...\n");
+       	//printf("Done conv...\n");
        	printf("P size:(%d,%d)\n",P.length(),P[0].length()); 
        	std::cout<<"P:"<<std::endl;
        	std::cout<<P<<std::endl;        	
@@ -627,7 +627,9 @@ int main(){
 	std::cout<<tmp1[0]<<std::endl;
 	*/
 	tensor<_2D_vector<int>,int>tmp3(1,2,3,3);
-	tensor<_2D_vector<int>,int>tmp6(2,1,3,3);
+	tensor<_2D_vector<int>,int>tmp6(2,4,3,3);
+	tensor<_2D_vector<int>,int>tmp7(4,2,3,3);
+	tensor<_2D_vector<int>,int>tmp8(2,1,3,3);
 	//std::cout<<tmp3[0][0]<<std::endl;
 	//tmp3.print_w();
 	//_2D_vector<int> tmp4;
@@ -638,7 +640,7 @@ int main(){
 	std::vector<_2D_vector<int>> tmp5(1);
 	int i,j,k;
 	for(i=0;i<tmp5.size();i++){
-		tmp5[i].data.resize(12,12);
+		tmp5[i].data.resize(9,9);
 		for(j=0;j<tmp5[0].length();j++){
 			for(k=0;k<tmp5[0][0].length();k++){
 				tmp5[i][j][k] = i+j+k;
@@ -650,5 +652,7 @@ int main(){
 
 	tmp3.forward(tmp5);
 	tmp6.forward(tmp5);
+	tmp7.forward(tmp5);
+	tmp8.forward(tmp5);
 	
 }
